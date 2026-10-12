@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sovereign Media Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070b; --panel:rgba(16,20,28,.66); --panel2:#0b0f16;
+  --line:rgba(255,255,255,.075); --line2:rgba(255,255,255,.14);
+  --text:#e9eef6; --muted:#8a95a6; --dim:#465162;
+  --cyan:#2ee6ff; --cyan-d:rgba(46,230,255,.12); --cyan-m:rgba(46,230,255,.45);
+  --violet:#a78bff; --violet-d:rgba(167,139,255,.12); --violet-m:rgba(167,139,255,.5);
+  --mono:"JetBrains Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+  --sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background-color:var(--bg);
+  background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:32px 32px;
+  color:var(--text);font:400 14px/1.45 var(--sans);-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:var(--mono)}
+.app{max-width:1640px;margin:0 auto;padding:14px 20px 10px;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;min-height:100vh}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+.eyebrow{font:600 10.5px/1 var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:34px;height:34px}
+.name{font:700 18px/1 var(--sans);letter-spacing:.22em}
+.tagline{font:400 12px/1.2 var(--mono);color:var(--muted);margin-top:6px;letter-spacing:.02em}
+.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.idchip{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.02)}
+.idchip b{color:var(--text);font-weight:500}
+.idchip .sep{color:var(--dim)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.review{font:600 11px/1 var(--mono);letter-spacing:.18em;color:var(--violet);border:1px solid var(--violet-m);background:var(--violet-d);padding:8px 11px;border-radius:7px}
+
+/* ---------- command bar ---------- */
+.cmdbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cmd{display:inline-flex;align-items:center;gap:10px;cursor:pointer;color:var(--text);
+  font:600 12px/1 var(--mono);letter-spacing:.08em;padding:12px 16px 12px 12px;border-radius:10px;
+  border:1px solid var(--line2);background:rgba(255,255,255,.025);transition:border-color .2s,background .2s,transform .15s,opacity .2s}
+.cmd .k{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-m);font-size:11px}
+.cmd:hover:not(:disabled){border-color:var(--cyan-m);background:var(--cyan-d);transform:translateY(-1px)}
+.cmd:disabled{opacity:.32;cursor:not-allowed}
+.cmd.ghost{padding:12px 14px;color:var(--muted)}
+.cmd.run{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-d)}
+.spacer{flex:1}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;border:1px solid var(--line2);border-radius:10px;padding:8px 14px 8px 10px}
+.switch input{position:absolute;opacity:0;pointer-events:none}
+.track{width:38px;height:20px;border-radius:999px;background:rgba(255,255,255,.08);position:relative;transition:background .25s}
+.knob{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .25s,background .25s}
+.switch input:checked + .track{background:var(--violet-d);box-shadow:inset 0 0 0 1px var(--violet-m)}
+.switch input:checked + .track .knob{transform:translateX(18px);background:var(--violet)}
+.switch input:focus-visible + .track{outline:2px solid var(--cyan);outline-offset:3px}
+.sw-label{font:600 12px/1 var(--mono);letter-spacing:.12em}
+
+/* ---------- layout ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:12px;min-height:0}
+.left{display:grid;grid-template-rows:auto 1fr;gap:12px;min-width:0}
+.right{display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:12px;min-width:0}
+
+/* ---------- pipeline ---------- */
+.pipe{padding:14px 16px 10px;position:relative}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.phase{font-size:11px;letter-spacing:.12em;color:var(--cyan);padding:6px 10px;border-radius:6px;background:var(--cyan-d);border:1px solid rgba(46,230,255,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pipe{display:block;width:100%;height:auto;max-height:32vh;margin-top:6px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted);max-height:0;opacity:0;overflow:hidden;transition:opacity .4s,max-height .4s}
+.net .legend{opacity:1;max-height:60px;padding-top:6px}
+.legend i{display:inline-block;width:22px;height:0;vertical-align:middle;margin-right:7px}
+.legend .lc{border-top:2px solid var(--cyan)}
+.legend .lv{border-top:2px dashed var(--violet)}
+.legend b{color:var(--text);font-weight:500}
+
+/* svg pieces */
+.node .box{fill:#0a0e15;stroke:rgba(255,255,255,.14);stroke-width:1;transition:stroke .3s}
+.node .ring{fill:none;stroke:var(--cyan);stroke-width:1;opacity:0}
+.node .ttl{fill:var(--text);font:600 11px var(--sans);letter-spacing:.07em}
+.node .idx{fill:var(--dim);font:500 9px var(--mono)}
+.node .sub{fill:var(--muted);font:400 9.5px var(--mono)}
+.node .sep{stroke:rgba(255,255,255,.07)}
+.node .st{fill:var(--dim);font:500 9.5px var(--mono);transition:fill .3s}
+.node.active .box{stroke:var(--cyan);filter:url(#glow)}
+.node.active .ring{animation:pulse 1.3s ease-in-out infinite}
+.node.active .st,.node.done .st{fill:var(--cyan)}
+.node.done .box{stroke:var(--cyan-m)}
+.node.dup .box{stroke:var(--violet);filter:url(#glowv)}
+.node.dup .st{fill:var(--violet)}
+#n-relay .ring{stroke:var(--violet)}
+#n-relay.active .box{stroke:var(--violet);filter:url(#glowv)}
+#n-relay.active .st,#n-relay.done .st{fill:var(--violet)}
+#n-relay.done .box{stroke:var(--violet-m)}
+@keyframes pulse{0%,100%{opacity:0}50%{opacity:.55}}
+
+.edge .base{fill:none;stroke:rgba(255,255,255,.16);stroke-width:1.2;stroke-dasharray:2 5;animation:dash 3s linear infinite;transition:stroke .4s,stroke-width .4s}
+.edge .flow{fill:none;stroke:var(--cyan);stroke-width:2.2;stroke-dasharray:6 8;opacity:0;animation:dash .55s linear infinite;transition:opacity .3s}
+.edge.meta .flow{stroke:var(--violet)}
+.edge.live .flow{opacity:1}
+.edge.fetch .base{opacity:.55}
+.net .edge.media .base{stroke:rgba(46,230,255,.6);stroke-width:2.2;stroke-dasharray:none;opacity:1}
+.net .edge.meta .base{stroke:rgba(167,139,255,.75);stroke-width:1.4;stroke-dasharray:3 4}
+@keyframes dash{to{stroke-dashoffset:-14}}
+.el{font:500 9.5px var(--mono);fill:var(--muted);transition:opacity .4s}
+.el.n2{opacity:0}
+.net .el.n1{opacity:0}
+.net .el.n2{opacity:1}
+.el.n2.c{fill:var(--cyan)} .el.n2.v{fill:var(--violet)}
+.zone{opacity:0;transition:opacity .5s}
+.net .zone{opacity:1}
+.zl{font:600 9.5px var(--mono);letter-spacing:.12em}
+.pkt-frame{fill:#0a0e15;stroke:var(--cyan);stroke-width:1.5}
+.pkt-l{font:600 9px var(--mono);fill:var(--cyan)}
+.meta-chip{fill:#140f24;stroke:var(--violet);stroke-width:1.2}
+.meta-t{font:600 9px var(--mono);fill:var(--violet)}
+#pkt,#meta{transition:opacity .35s}
+
+/* ---------- media object ---------- */
+.media{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:1fr auto;overflow:hidden;min-height:340px}
+.pv{position:relative;min-height:260px;background:#000;border-right:1px solid var(--line)}
+.pv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pv-tag{position:absolute;left:12px;top:12px;font:600 10.5px/1 var(--mono);letter-spacing:.12em;padding:7px 9px;border-radius:6px;background:rgba(5,7,11,.72);border:1px solid var(--line2);color:var(--text)}
+.pv-tag.ok{color:var(--cyan);border-color:var(--cyan-m)}
+.pv-foot{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.8);text-shadow:0 1px 3px #000}
+.pv-banner{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);min-width:66%;padding:18px 22px;border-radius:12px;background:rgba(5,7,11,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--cyan-m);opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;text-align:center}
+.pv-banner.show{opacity:1;transform:translate(-50%,-50%)}
+.pv-banner.dup{border-color:var(--violet);box-shadow:0 0 0 4px var(--violet-d)}
+.pv-banner .bt{font:700 19px/1.1 var(--sans);letter-spacing:.14em;color:var(--cyan)}
+.pv-banner.dup .bt{color:var(--violet)}
+.pv-banner .bl{font:500 12px/1.4 var(--mono);letter-spacing:.08em;margin-top:8px;color:var(--text)}
+.pv-banner .bl.big{font-size:15px;font-weight:600}
+.mb{padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mb-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mb-head .l{display:flex;align-items:center;gap:12px}
+.own{font:500 10.5px var(--mono);color:var(--muted);cursor:pointer;border-bottom:1px dashed var(--dim)}
+.own:hover{color:var(--cyan)}
+.status{font:600 10.5px/1 var(--mono);letter-spacing:.14em;padding:7px 10px;border-radius:6px;border:1px solid var(--line2);color:var(--muted)}
+.status.busy{color:var(--cyan);border-color:var(--cyan-m);animation:blink 1s steps(2) infinite}
+.status.ok{color:#05070b;background:var(--cyan);border-color:var(--cyan)}
+.status.dup{color:#05070b;background:var(--violet);border-color:var(--violet)}
+@keyframes blink{50%{opacity:.45}}
+.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.5fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin:0}
+.fields div{background:var(--panel2);padding:8px 10px;min-width:0}
+.fields dt{font:500 9.5px var(--mono);letter-spacing:.14em;color:var(--dim)}
+.fields dd{margin:3px 0 0;font:500 12.5px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hash{border:1px solid rgba(46,230,255,.22);border-radius:12px;padding:14px 16px;background:linear-gradient(180deg,rgba(46,230,255,.05),rgba(46,230,255,0) 70%);position:relative}
+.hash-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hash-short{font:600 26px/1 var(--mono);letter-spacing:.02em;color:var(--text)}
+.hash-short em{font-style:normal;color:var(--cyan)}
+.hash-body{display:flex;gap:18px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.hash-grid{font:500 clamp(14px,1.25vw,19px)/1.5 var(--mono);letter-spacing:.05em}
+.hrow{white-space:nowrap}
+.hgrp{margin-right:.7em}
+.hash-grid span span{display:inline-block;width:1ch;color:var(--dim);transition:color .25s,text-shadow .25s}
+.hash-grid.busy span span:not(.lock){color:rgba(46,230,255,.55)}
+.hash-grid span span.lock{color:var(--text)}
+.hash-grid span span.lock.key{color:var(--cyan)}
+.hash-grid span span.match{color:var(--violet);text-shadow:0 0 10px rgba(167,139,255,.6)}
+.hash-side{display:flex;flex-direction:column;gap:6px;font:400 11px/1.4 var(--mono);color:var(--muted);min-width:180px;flex:1}
+.hash-side b{color:var(--text);font-weight:500}
+.cmp{display:none;margin-top:12px;font:500 11.5px/1.7 var(--mono);border-top:1px solid var(--line);padding-top:8px}
+.cmp.show{display:block}
+.cmp .r{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted)}
+.cmp b{color:var(--text);font-weight:500}
+.cmp .eq{color:var(--violet)}
+.auth{font:400 11px/1.5 var(--mono);color:var(--muted);border-left:2px solid var(--line2);padding:2px 0 2px 10px;transition:border-color .3s}
+.auth.on{border-left-color:var(--cyan)}
+.auth b{color:var(--text);font-weight:600;letter-spacing:.08em}
+.auth .c{color:var(--cyan)}
+.stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.stat{padding:10px 16px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat .k{font:500 9.5px var(--mono);letter-spacing:.14em;color:var(--dim)}
+.stat .v{font:600 20px/1.2 var(--mono);margin-top:3px;transition:color .3s}
+.stat .v.hl{color:var(--violet)}
+.stat .v.c{color:var(--cyan)}
+
+/* ---------- log ---------- */
+.log{display:flex;flex-direction:column;min-height:230px;overflow:hidden;contain:size}
+.lh,.gh{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.live{display:flex;align-items:center;gap:7px;font:500 10.5px var(--mono);color:var(--muted)}
+#log{flex:1;overflow:auto;padding:10px 12px 12px;font:400 11.5px/1.65 var(--mono);min-height:170px}
+#log::-webkit-scrollbar{width:6px}#log::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+.ln{display:grid;grid-template-columns:auto 62px 1fr;gap:8px;animation:in .35s ease-out}
+.ln .ts{color:var(--dim)}
+.ln .tg{font-weight:600;letter-spacing:.04em}
+.ln .msg{color:#c9d2de;overflow-wrap:anywhere}
+.ln.hi .msg{color:var(--text);font-weight:500}
+.t-sys{color:var(--muted)} .t-device{color:#d7dde6} .t-nostr{color:var(--violet)} .t-blossom{color:var(--cyan)}
+.t-sha256{color:#ffffff} .t-relay{color:var(--violet)} .t-gallery{color:var(--cyan)} .t-view{color:var(--muted)}
+@keyframes in{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+
+/* ---------- gallery ---------- */
+.gallery{overflow:hidden}
+.gbody{padding:12px 14px 14px}
+.tile{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#080b11;border:1px solid var(--line)}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.g-ph{filter:blur(12px) saturate(1.15);transform:scale(1.18);opacity:0;transition:opacity .6s}
+.g-full{opacity:0;filter:blur(8px);transition:opacity 1s,filter 1s}
+.tile.indexed .g-ph{opacity:.35}
+.tile.ph .g-ph{opacity:1}
+.tile.full .g-full{opacity:1;filter:none}
+.g-empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font:500 11px/1.6 var(--mono);color:var(--dim);transition:opacity .4s}
+.tile.indexed .g-empty{color:var(--text)}
+.tile.ph .g-empty,.tile.full .g-empty{opacity:0}
+.g-tags{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.gt{font:600 10px/1 var(--mono);letter-spacing:.12em;padding:6px 8px;border-radius:5px;background:rgba(5,7,11,.8);opacity:0;transform:translateY(-4px);transition:opacity .4s,transform .4s}
+.gt.on{opacity:1;transform:none}
+.gt.v{color:var(--violet);border:1px solid var(--violet-m)}
+.gt.c{color:var(--cyan);border:1px solid var(--cyan-m)}
+.prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06);opacity:0;transition:opacity .3s}
+.prog.on{opacity:1}
+.prog i{display:block;height:100%;width:0;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.gmeta{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin-top:10px;font:400 11px/1.5 var(--mono);min-height:66px}
+.gmeta .k{color:var(--violet)}
+.gmeta .v{color:#c9d2de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.gmeta .none{grid-column:1/-1;color:var(--dim)}
+
+/* ---------- privacy boundary ---------- */
+.boundary{padding:12px 14px;display:flex;flex-direction:column;gap:8px;transition:box-shadow .4s,border-color .4s}
+.net .boundary{border-color:var(--violet-m);box-shadow:0 0 0 3px var(--violet-d)}
+.br{display:flex;gap:10px;align-items:flex-start}
+.br i{flex:none;width:3px;align-self:stretch;border-radius:2px}
+.br.c i{background:var(--cyan)} .br.v i{background:var(--violet)}
+.br b{display:block;font:600 11.5px/1.3 var(--mono);letter-spacing:.08em}
+.br.c b{color:var(--cyan)} .br.v b{color:var(--violet)}
+.br span{font:400 11px/1.35 var(--mono);color:var(--muted)}
+.future{font:400 10.5px/1.4 var(--mono);color:var(--dim);border-top:1px solid var(--line);padding-top:7px}
+
+/* ---------- footer ---------- */
+footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font:400 11px var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
+footer .keys{color:var(--dim)}
+footer b{color:var(--text);font-weight:500}
+
+@media (max-width:1180px){
+  .main{grid-template-columns:1fr}
+  .right{grid-template-rows:auto auto auto}
+  .log{contain:none}
+  #log{max-height:260px}
+}
+@media (max-width:760px){
+  .app{padding:12px 16px}
+  .media{grid-template-columns:1fr}
+  .pv{border-right:0;border-bottom:1px solid var(--line)}
+  .fields{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat:nth-child(2){border-right:0}
+  .cmd{flex:1 1 100%}
+  #pipe{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .edge .base,.edge .flow,.node.active .ring,.status.busy{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 2 28 9v14L16 30 4 23V9z" fill="none" stroke="#2ee6ff" stroke-width="1.5"/>
+      <path d="M16 9.5l5.6 3.25v6.5L16 22.5l-5.6-3.25v-6.5z" fill="rgba(167,139,255,.25)" stroke="#a78bff" stroke-width="1.2"/>
+    </svg>
+    <div>
+      <div class="name">SOVEREIGN MEDIA HUB</div>
+      <div class="tagline">passwordless private cloud · nostr identity · blossom content-addressed storage</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="idchip mono"><span class="dot"></span><b id="npub">npub1…</b><span class="sep">|</span>private key on this device · no password</div>
+    <span class="review">REVIEW 1</span>
+  </div>
+</header>
+
+<nav class="cmdbar" aria-label="Demo controls">
+  <button class="cmd" id="btnA"><span class="k">01</span>UPLOAD FROM DEVICE A</button>
+  <button class="cmd" id="btnB" disabled><span class="k">02</span>UPLOAD SAME FILE FROM DEVICE B</button>
+  <button class="cmd" id="btnG" disabled><span class="k">03</span>OPEN GALLERY</button>
+  <button class="cmd ghost" id="btnR">RESET</button>
+  <div class="spacer"></div>
+  <label class="switch"><input type="checkbox" id="net"><span class="track"><span class="knob"></span></span><span class="sw-label">NETWORK VIEW</span></label>
+</nav>
+
+<main class="main">
+  <div class="left">
+
+    <section class="panel pipe" aria-label="Architecture pipeline">
+      <div class="ph"><span class="eyebrow">Secure media pipeline</span><span class="phase mono" id="phase">IDLE · READY</span></div>
+      <svg id="pipe" viewBox="0 0 1000 312" role="img" aria-label="Device to Nostr identity to Blossom storage to relay index to gallery">
+        <defs>
+          <filter id="glow" x="-30%" y="-40%" width="160%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#2ee6ff" flood-opacity=".45"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glowv" x="-30%" y="-40%" width="160%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#a78bff" flood-opacity=".45"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <clipPath id="pktclip"><rect x="-24" y="-16" width="48" height="32" rx="3"/></clipPath>
+        </defs>
+        <g class="zone">
+          <rect x="608" y="6" width="184" height="140" rx="10" fill="rgba(167,139,255,.05)" stroke="rgba(167,139,255,.55)" stroke-dasharray="4 4"/>
+          <text x="620" y="22" class="zl" fill="#a78bff">PUBLIC · NOSTR RELAY</text>
+          <text x="700" y="137" class="el" fill="#a78bff" text-anchor="middle">✕ never holds media bytes</text>
+          <rect x="8" y="152" width="984" height="156" rx="10" fill="rgba(46,230,255,.03)" stroke="rgba(46,230,255,.45)" stroke-dasharray="4 4"/>
+          <text x="20" y="168" class="zl" fill="#2ee6ff">PRIVATE · YOUR DEVICES + YOUR BLOSSOM SERVER</text>
+        </g>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+        <g id="meta" style="opacity:0">
+          <rect class="meta-chip" x="-36" y="-11" width="72" height="22" rx="11"/>
+          <text class="meta-t" id="meta-t" y="3.5" text-anchor="middle">kind 1063</text>
+        </g>
+        <g id="pkt" style="opacity:0">
+          <rect class="pkt-frame" x="-27" y="-19" width="54" height="38" rx="5"/>
+          <image id="pkt-img" x="-24" y="-16" width="48" height="32" preserveAspectRatio="xMidYMid slice" clip-path="url(#pktclip)"/>
+          <text class="pkt-l" id="pkt-l" y="31" text-anchor="middle">4.8 MB</text>
+        </g>
+      </svg>
+      <div class="legend mono">
+        <span><i class="lc"></i><b>media bytes</b> · only between your devices and your Blossom server</span>
+        <span><i class="lv"></i><b>signed metadata</b> · the only thing the public relay sees</span>
+        <span>through relay: <b id="lg-relay">0 B</b> · through Blossom: <b id="lg-blob">0 B</b></span>
+      </div>
+    </section>
+
+    <section class="panel media" aria-label="Media object">
+      <div class="pv">
+        <img id="pv-img" alt="vacation.jpg preview">
+        <div class="pv-tag" id="pv-tag">LOCAL · DEVICE A</div>
+        <div class="pv-banner" id="pv-banner"></div>
+        <div class="pv-foot mono"><span id="pv-name">vacation.jpg</span><span id="pv-size">4.8 MB</span></div>
+      </div>
+      <div class="mb">
+        <div class="mb-head">
+          <div class="l"><span class="eyebrow">Media object</span><label class="own" title="Hash a real image of your own">use your own image<input type="file" id="file" accept="image/*" hidden></label></div>
+          <span class="status" id="status">LOCAL ONLY</span>
+        </div>
+        <dl class="fields">
+          <div><dt>FILENAME</dt><dd id="f-name">vacation.jpg</dd></div>
+          <div><dt>TYPE</dt><dd id="f-type">image/jpeg</dd></div>
+          <div><dt>SIZE</dt><dd id="f-size">4.8 MB</dd></div>
+          <div><dt>ADDRESS ON SERVER</dt><dd id="f-addr">— not stored —</dd></div>
+        </dl>
+        <div class="hash">
+          <div class="hash-top">
+            <span class="eyebrow" style="color:var(--cyan)">SHA-256 · Content ID</span>
+            <span class="hash-short" id="hash-short">····<em>…</em>····</span>
+          </div>
+          <div class="hash-body">
+            <div class="hash-grid" id="hash-grid" aria-live="polite"></div>
+            <div class="hash-side">
+              <span><b>256 bits</b> · 64 hex characters</span>
+              <span>same bytes → same ID, on any device</span>
+              <span>one changed pixel → a completely different ID</span>
+              <span>stored at <b>/&lt;sha256&gt;</b>, not at a filename</span>
+            </div>
+          </div>
+          <div class="cmp" id="cmp">
+            <div class="r"><span>A stored <b id="cmp-a"></b></span><span>B incoming <b id="cmp-b"></b></span><span class="eq">≡ 64/64 match</span></div>
+          </div>
+        </div>
+        <div class="auth" id="auth"><b>AUTH EVENT</b> · not signed yet</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">OBJECTS STORED</div><div class="v" id="s-obj">0</div></div>
+        <div class="stat"><div class="k">UPLOAD REQUESTS</div><div class="v" id="s-up">0</div></div>
+        <div class="stat"><div class="k">BYTES DUPLICATED</div><div class="v" id="s-dup">—</div></div>
+        <div class="stat"><div class="k">RELAY PAYLOAD</div><div class="v" id="s-relay">0 B</div></div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="right">
+    <section class="panel log" aria-label="Event log">
+      <div class="lh"><span class="eyebrow">Event log</span><span class="live"><span class="dot"></span>live</span></div>
+      <div id="log" aria-live="polite"></div>
+    </section>
+
+    <section class="panel gallery" aria-label="Media gallery">
+      <div class="gh"><span class="eyebrow">Media gallery · client</span><span class="live mono" id="g-count">0 items</span></div>
+      <div class="gbody">
+        <div class="tile" id="tile">
+          <img class="g-ph" id="g-ph" alt="">
+          <img class="g-full" id="g-full" alt="">
+          <div class="g-empty" id="g-empty">no objects indexed<br>upload from device A first</div>
+          <div class="g-tags">
+            <span class="gt v" id="gt-meta">① METADATA FROM RELAY</span>
+            <span class="gt c" id="gt-media">② MEDIA FROM USER SERVER</span>
+          </div>
+          <div class="prog" id="prog"><i id="prog-i"></i></div>
+        </div>
+        <div class="gmeta" id="gmeta"><span class="none">relay metadata appears here</span></div>
+      </div>
+    </section>
+
+    <section class="panel boundary" aria-label="Privacy boundary">
+      <span class="eyebrow">Privacy boundary</span>
+      <div class="br c"><i></i><div><b>MEDIA BYTES STAY ON USER SERVER</b><span>Blossom on your NAS · Raspberry Pi · VPS</span></div></div>
+      <div class="br v"><i></i><div><b>RELAY RECEIVES METADATA ONLY</b><span>signed event: hash · url · type · size</span></div></div>
+      <div class="future">not in this prototype: encryption · access control · sharing permissions (future work)</div>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  <span><b>Architecture proof of concept — Sovereign Media Hub</b></span>
+  <span class="keys">keys: 1 · 2 · 3 · N network view · R reset</span>
+  <span>VIT Vellore | Innovative Design Project</span>
+</footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEED = REDUCED ? 0.35 : 1;
+const wait = ms => new Promise(r => setTimeout(r, ms * SPEED));
+const HOST = 'blossom.my-nas.home';
+
+/* ---------- helpers ---------- */
+const randHex = n => Array.from(crypto.getRandomValues(new Uint8Array(n / 2)), b => b.toString(16).padStart(2, '0')).join('');
+const short = (h, n = 4) => h.slice(0, n) + '…' + h.slice(-n);
+const fmtBytes = n => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+const extOf = t => ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' })[t] || 'bin';
+const BECH = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+const NPUB = 'npub1' + Array.from(crypto.getRandomValues(new Uint8Array(58)), b => BECH[b & 31]).join('');
+const PUBHEX = randHex(64);
+$('#npub').textContent = NPUB.slice(0, 10) + '…' + NPUB.slice(-4);
+
+/* ---------- SHA-256 (WebCrypto, with pure-JS fallback) ---------- */
+function sha256js(m) {
+  const P = [], K = [], H = [];
+  for (let n = 2; P.length < 64; n++) if (P.every(p => n % p)) P.push(n);
+  const frac = x => ((x - Math.floor(x)) * 4294967296) >>> 0;
+  for (let i = 0; i < 64; i++) K[i] = frac(Math.cbrt(P[i]));
+  for (let i = 0; i < 8; i++) H[i] = frac(Math.sqrt(P[i]));
+  const l = m.length, bl = ((l + 9 + 63) >> 6) << 6, buf = new Uint8Array(bl);
+  buf.set(m); buf[l] = 0x80;
+  const dv = new DataView(buf.buffer);
+  dv.setUint32(bl - 4, (l * 8) >>> 0); dv.setUint32(bl - 8, Math.floor(l * 8 / 4294967296));
+  const W = new Uint32Array(64);
+  for (let o = 0; o < bl; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const x = W[i - 15], y = W[i - 2];
+      const s0 = (x >>> 7 | x << 25) ^ (x >>> 18 | x << 14) ^ (x >>> 3);
+      const s1 = (y >>> 17 | y << 15) ^ (y >>> 19 | y << 13) ^ (y >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const S1 = (e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7);
+      const t1 = (h + S1 + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+      const S0 = (a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10);
+      const t2 = (S0 + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+}
+const ENGINE = (window.crypto && crypto.subtle) ? 'WebCrypto' : 'pure-JS';
+async function sha256(bytes) {
+  if (ENGINE === 'WebCrypto') {
+    try {
+      const d = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) { /* fall through */ }
+  }
+  return sha256js(bytes);
+}
+
+/* ---------- demo photo (procedural, deterministic) ---------- */
+function rng(seed) { return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function paintScene(W, H) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'), r = rng(2612), hz = H * 0.62;
+  const sky = g.createLinearGradient(0, 0, 0, hz);
+  sky.addColorStop(0, '#080c26'); sky.addColorStop(.42, '#33266a'); sky.addColorStop(.74, '#b4517c'); sky.addColorStop(1, '#ffb46c');
+  g.fillStyle = sky; g.fillRect(0, 0, W, hz);
+  for (let i = 0; i < 140; i++) { g.fillStyle = `rgba(255,255,255,${r() * .7})`; g.fillRect(r() * W, r() * hz * .45, 1.6, 1.6); }
+  const sx = W * .64, sy = hz - H * .055, sr = H * .085;
+  const glow = g.createRadialGradient(sx, sy, 0, sx, sy, sr * 6);
+  glow.addColorStop(0, 'rgba(255,214,160,.6)'); glow.addColorStop(1, 'rgba(255,214,160,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, W, hz);
+  g.fillStyle = '#ffe6bd'; g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI * 2); g.fill();
+  const ridge = (amp, col, freq, ph) => {
+    g.beginPath(); g.moveTo(0, hz);
+    for (let x = 0; x <= W; x += W / 90) g.lineTo(x, hz - amp * (.55 + .45 * Math.sin(x / W * Math.PI * 2 * freq + ph)) - r() * amp * .18);
+    g.lineTo(W, hz); g.closePath(); g.fillStyle = col; g.fill();
+  };
+  ridge(H * .13, '#4b3070', 1.2, 1.1); ridge(H * .075, '#271b45', 2.3, 4.2);
+  const sea = g.createLinearGradient(0, hz, 0, H);
+  sea.addColorStop(0, '#3d2b5c'); sea.addColorStop(.35, '#141a3a'); sea.addColorStop(1, '#04060e');
+  g.fillStyle = sea; g.fillRect(0, hz, W, H - hz);
+  for (let y = hz + 2; y < H; y += 3) {
+    const k = (y - hz) / (H - hz), w = sr * (1.2 + k * 3.2) * (.35 + r() * .8);
+    g.fillStyle = `rgba(255,${(185 + r() * 50) | 0},150,${(1 - k) * .6 * r()})`;
+    g.fillRect(sx - w / 2 + (r() - .5) * sr * k * 2.4, y, w, 1.4 + k * 2.2);
+  }
+  g.fillStyle = '#03040a';
+  g.beginPath(); g.moveTo(0, H); g.lineTo(0, H * .7); g.bezierCurveTo(W * .12, H * .67, W * .21, H * .8, W * .32, H); g.closePath(); g.fill();
+  g.strokeStyle = '#03040a'; g.lineCap = 'round';
+  g.lineWidth = H * .014; g.beginPath(); g.moveTo(W * .11, H * .74); g.quadraticCurveTo(W * .1, H * .5, W * .16, H * .29); g.stroke();
+  const tx = W * .16, ty = H * .29;
+  [[-2.7, .2], [-2.2, .17], [-1.4, .15], [-.6, .17], [-.15, .2], [.5, .14], [2.6, .13]].forEach(([a, len]) => {
+    const ex = tx + Math.cos(a) * W * len, ey = ty + Math.sin(a) * W * len * .55 + W * len * .25;
+    g.lineWidth = H * .011; g.beginPath(); g.moveTo(tx, ty);
+    g.quadraticCurveTo(tx + Math.cos(a) * W * len * .6, ty + Math.sin(a) * W * len * .5 - H * .04, ex, ey); g.stroke();
+  });
+  const id = g.getImageData(0, 0, W, H), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const n = (r() - .5) * 12; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  g.putImageData(id, 0, 0);
+  return c;
+}
+function placeholderFrom(src) {
+  const p = document.createElement('canvas'); p.width = 32; p.height = 18;
+  p.getContext('2d').drawImage(src, 0, 0, 32, 18); return p.toDataURL('image/png');
+}
+async function demoObject() {
+  const c = paintScene(1600, 1000);
+  const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.9));
+  return { name: 'vacation.jpg', type: 'image/jpeg', sizeBytes: 5033165, sizeLabel: '4.8 MB', dim: '4032x3024',
+    bytes: new Uint8Array(await blob.arrayBuffer()), url: URL.createObjectURL(blob), ph: placeholderFrom(c), demo: true };
+}
+async function fileObject(file) {
+  const url = URL.createObjectURL(file), img = new Image(); img.src = url; await img.decode();
+  return { name: file.name, type: file.type || 'application/octet-stream', sizeBytes: file.size, sizeLabel: fmtBytes(file.size),
+    dim: img.naturalWidth + 'x' + img.naturalHeight, bytes: new Uint8Array(await file.arrayBuffer()), url, ph: placeholderFrom(img), demo: false };
+}
+
+/* ---------- pipeline svg ---------- */
+const NODES = {
+  device:   { x: 85,  y: 218, i: '01', t: 'USER DEVICE',     s: 'device A · client' },
+  identity: { x: 275, y: 218, i: '02', t: 'NOSTR IDENTITY',  s: 'schnorr · secp256k1' },
+  blossom:  { x: 490, y: 218, i: '03', t: 'BLOSSOM STORAGE', s: 'user-owned server' },
+  relay:    { x: 700, y: 80,  i: '04', t: 'RELAY INDEX',     s: 'public · lightweight' },
+  gallery:  { x: 915, y: 218, i: '05', t: 'MEDIA GALLERY',   s: 'client view' }
+};
+const EDGES = {
+  e1: { d: 'M151 218 H209', cls: 'local', l: [180, 208, 'middle'], n1: 'sign', n2: 'on-device', c: 'c' },
+  e2: { d: 'M341 218 H424', cls: 'media', l: [382, 208, 'middle'], n1: 'PUT /upload', n2: '{size} bytes', c: 'c' },
+  e3: { d: 'M556 204 C 604 204, 586 80, 634 80', cls: 'meta', l: [584, 136, 'end'], n1: 'publish kind 1063', n2: '≈{relay} metadata', c: 'v' },
+  e4: { d: 'M766 80 C 814 80, 800 204, 849 204', cls: 'meta', l: [818, 136, 'start'], n1: 'REQ ⇄ EVENT', n2: '≈{relay} metadata', c: 'v' },
+  e5: { d: 'M556 234 C 640 294, 765 294, 849 234', cls: 'media fetch', l: [702, 300, 'middle'], n1: 'GET /<sha256> · direct HTTPS', n2: '{size} · direct HTTPS · never via relay', c: 'c' }
+};
+const mk = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+for (const id in EDGES) {
+  const E = EDGES[id], g = mk('g', { class: 'edge ' + E.cls, id: 'e-' + id });
+  g.append(mk('path', { class: 'base', d: E.d, id: 'p-' + id }), mk('path', { class: 'flow', d: E.d }));
+  g.append(mk('text', { class: 'el n1', x: E.l[0], y: E.l[1], 'text-anchor': E.l[2] }, E.n1));
+  g.append(mk('text', { class: 'el n2 ' + E.c, x: E.l[0], y: E.l[1], 'text-anchor': E.l[2], 'data-tpl': E.n2 }, E.n2));
+  $('#edges').append(g);
+}
+for (const id in NODES) {
+  const n = NODES[id], g = mk('g', { class: 'node', id: 'n-' + id, transform: `translate(${n.x} ${n.y})` });
+  g.append(mk('rect', { class: 'ring', x: -72, y: -46, width: 144, height: 92, rx: 12 }));
+  g.append(mk('rect', { class: 'box', x: -66, y: -40, width: 132, height: 80, rx: 9 }));
+  g.append(mk('text', { class: 'ttl', x: -56, y: -18 }, n.t));
+  g.append(mk('text', { class: 'idx', x: 56, y: -18, 'text-anchor': 'end' }, n.i));
+  g.append(mk('text', { class: 'sub', x: -56, y: 0 }, n.s));
+  g.append(mk('line', { class: 'sep', x1: -56, x2: 56, y1: 11, y2: 11 }));
+  g.append(mk('text', { class: 'st', x: -56, y: 28 }, '—'));
+  $('#nodes').append(g);
+}
+function refreshEdgeLabels() {
+  document.querySelectorAll('.el.n2').forEach(t => {
+    t.textContent = t.dataset.tpl.replace('{size}', OBJ ? OBJ.sizeLabel : '4.8 MB').replace('{relay}', S.relayBytes ? fmtBytes(S.relayBytes) : '0.6 KB');
+  });
+}
+function setNode(id, state, status) {
+  const g = $('#n-' + id); g.classList.remove('active', 'done', 'dup');
+  if (state) g.classList.add(state);
+  if (status != null) g.querySelector('.st').textContent = status;
+}
+const setSub = (id, s) => { $('#n-' + id).querySelector('.sub').textContent = s; };
+const setEdge = (id, on) => $('#e-' + id).classList.toggle('live', on);
+const pkt = $('#pkt'), meta = $('#meta');
+function travel(g, id, dur, rev = false) {
+  const p = $('#p-' + id), L = p.getTotalLength();
+  g.style.opacity = 1;
+  return new Promise(res => {
+    const t0 = performance.now();
+    (function f(now) {
+      const t = Math.min(1, (now - t0) / (dur * SPEED));
+      const e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const pt = p.getPointAtLength((rev ? 1 - e : e) * L);
+      g.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+      t < 1 ? requestAnimationFrame(f) : res();
+    })(t0);
+  });
+}
+
+/* ---------- hash display ---------- */
+const grid = $('#hash-grid'), cells = [];
+for (let r = 0; r < 4; r++) {
+  const row = document.createElement('div'); row.className = 'hrow';
+  for (let k = 0; k < 2; k++) {
+    const grp = document.createElement('span'); grp.className = 'hgrp';
+    for (let j = 0; j < 8; j++) { const s = document.createElement('span'); s.textContent = '·'; grp.append(s); cells.push(s); }
+    row.append(grp);
+  }
+  grid.append(row);
+}
+function clearHash() {
+  cells.forEach(c => { c.className = ''; c.textContent = '·'; });
+  $('#hash-short').innerHTML = '····<em>…</em>····';
+}
+function revealHash(h, dur) {
+  const HEX = '0123456789abcdef';
+  cells.forEach(c => c.className = '');
+  grid.classList.add('busy');
+  return new Promise(res => {
+    const t0 = performance.now();
+    (function f(now) {
+      const t = Math.min(1, (now - t0) / (dur * SPEED)), settled = Math.floor(t * 64);
+      for (let i = 0; i < 64; i++) {
+        if (i < settled) { if (!cells[i].classList.contains('lock')) { cells[i].textContent = h[i]; cells[i].classList.add('lock'); if (i < 4 || i >= 60) cells[i].classList.add('key'); } }
+        else cells[i].textContent = HEX[Math.random() * 16 | 0];
+      }
+      if (t < 1) return requestAnimationFrame(f);
+      cells.forEach((c, i) => { c.textContent = h[i]; c.classList.add('lock'); if (i < 4 || i >= 60) c.classList.add('key'); });
+      grid.classList.remove('busy');
+      $('#hash-short').innerHTML = `${h.slice(0, 4)}<em>…</em>${h.slice(-4)}`;
+      res();
+    })(t0);
+  });
+}
+async function scanMatch() { for (let i = 0; i < 64; i++) { cells[i].classList.add('match'); if (i % 4 === 3) await wait(16); } }
+
+/* ---------- log ---------- */
+const logEl = $('#log');
+function log(tag, msg, hi) {
+  const ln = document.createElement('div'); ln.className = 'ln' + (hi ? ' hi' : '');
+  const ts = new Date().toTimeString().slice(0, 8);
+  ln.innerHTML = `<span class="ts">[${ts}]</span><span class="tg t-${tag.toLowerCase()}">${tag}</span><span class="msg"></span>`;
+  ln.querySelector('.msg').textContent = msg;
+  logEl.append(ln); logEl.scrollTop = logEl.scrollHeight;
+}
+
+/* ---------- UI state ---------- */
+let OBJ = null;
+let S = {};
+const phase = t => { $('#phase').textContent = t; };
+function setStatus(t, cls) { const s = $('#status'); s.textContent = t; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function banner(title, lines, kind) {
+  const b = $('#pv-banner');
+  b.className = 'pv-banner show ' + (kind || '');
+  b.innerHTML = `<div class="bt">${title}</div>` + lines.map(([t, big]) => `<div class="bl${big ? ' big' : ''}">${t}</div>`).join('');
+}
+const hideBanner = () => { $('#pv-banner').className = 'pv-banner'; };
+function pvTag(t, ok) { const e = $('#pv-tag'); e.textContent = t; e.className = 'pv-tag' + (ok ? ' ok' : ''); }
+function stats() {
+  $('#s-obj').textContent = S.objects;
+  $('#s-up').textContent = S.uploads;
+  const dup = $('#s-dup'); dup.textContent = S.uploads > 1 ? '0 B' : '—'; dup.className = 'v' + (S.uploads > 1 ? ' hl' : '');
+  const rl = $('#s-relay'); rl.textContent = fmtBytes(S.relayBytes); rl.className = 'v' + (S.relayBytes ? ' c' : '');
+  $('#lg-relay').textContent = fmtBytes(S.relayBytes);
+  $('#lg-blob').textContent = S.blobBytes ? fmtBytes(S.blobBytes) : '0 B';
+  refreshEdgeLabels();
+}
+function buttons() {
+  $('#btnA').disabled = S.busy || S.stored;
+  $('#btnB').disabled = S.busy || !S.stored;
+  $('#btnG').disabled = S.busy || !S.stored;
+  $('#btnR').disabled = S.busy;
+}
+function busy(on, btn) {
+  S.busy = on; buttons();
+  document.querySelectorAll('.cmd').forEach(b => b.classList.remove('run'));
+  if (on && btn) $(btn).classList.add('run');
+}
+function gallery(state) { $('#tile').className = 'tile ' + (state || ''); }
+function galleryMeta(ev) {
+  const gm = $('#gmeta');
+  if (!ev) { gm.innerHTML = '<span class="none">relay metadata appears here</span>'; return; }
+  const tag = k => (ev.tags.find(t => t[0] === k) || [])[1];
+  const rows = [['x', short(tag('x'), 10)], ['url', tag('url').replace(/^https:\/\//, '').replace(tag('x'), short(tag('x'), 4))], ['m', tag('m')], ['size', Number(tag('size')).toLocaleString() + ' B'], ['dim', tag('dim')]];
+  gm.innerHTML = '';
+  rows.forEach(([k, v]) => { gm.append(Object.assign(document.createElement('span'), { className: 'k', textContent: k })); gm.append(Object.assign(document.createElement('span'), { className: 'v', textContent: v })); });
+}
+function authEvent() {
+  const now = Math.floor(Date.now() / 1000);
+  return { kind: 24242, pubkey: PUBHEX, created_at: now, content: 'Upload ' + OBJ.name,
+    tags: [['t', 'upload'], ['x', S.hash || '<sha256>'], ['expiration', String(now + 300)]], sig: randHex(128) };
+}
+function metaEvent(h) {
+  return { id: randHex(64), kind: 1063, pubkey: PUBHEX, created_at: Math.floor(Date.now() / 1000), content: OBJ.name,
+    tags: [['url', `https://${HOST}/${h}.${extOf(OBJ.type)}`], ['m', OBJ.type], ['x', h], ['size', String(OBJ.sizeBytes)], ['dim', OBJ.dim], ['blurhash', 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.']], sig: randHex(128) };
+}
+function showAuth(ev, xState) {
+  const a = $('#auth'); a.className = 'auth on';
+  const x = xState === 'ok' ? `<span class="c">${short(S.hash, 4)} ✓ matches</span>` : 'computed on device';
+  a.innerHTML = `<b>AUTH EVENT</b> · kind 24242 · t=upload · x=${x} · exp +300s · sig <span class="c">${short(ev.sig, 6)}</span>`;
+}
+function loadObjectIntoUI() {
+  $('#pv-img').src = OBJ.url;
+  $('#pkt-img').setAttribute('href', OBJ.url);
+  $('#g-ph').src = OBJ.ph; $('#g-full').src = OBJ.url;
+  $('#pv-name').textContent = OBJ.name; $('#pv-size').textContent = OBJ.sizeLabel;
+  $('#pkt-l').textContent = OBJ.sizeLabel;
+  $('#f-name').textContent = OBJ.name; $('#f-type').textContent = OBJ.type; $('#f-size').textContent = OBJ.sizeLabel;
+}
+function reset(silent) {
+  S = { busy: false, stored: false, hash: null, uploads: 0, objects: 0, relayBytes: 0, blobBytes: 0, event: null };
+  Object.keys(NODES).forEach(id => setNode(id, '', '—'));
+  setSub('device', 'device A · client');
+  Object.keys(EDGES).forEach(id => setEdge(id, false));
+  pkt.style.opacity = 0; meta.style.opacity = 0;
+  pkt.setAttribute('transform', 'translate(85 218)');
+  clearHash(); hideBanner();
+  $('#cmp').className = 'cmp';
+  $('#auth').className = 'auth'; $('#auth').innerHTML = '<b>AUTH EVENT</b> · not signed yet';
+  $('#f-addr').textContent = '— not stored —';
+  setStatus('LOCAL ONLY'); pvTag('LOCAL · DEVICE A');
+  gallery(''); galleryMeta(null);
+  $('#g-empty').innerHTML = 'no objects indexed<br>upload from device A first';
+  $('#g-count').textContent = '0 items';
+  $('#gt-meta').classList.remove('on'); $('#gt-media').classList.remove('on');
+  $('#prog').classList.remove('on'); $('#prog-i').style.cssText = 'width:0';
+  phase('IDLE · READY');
+  stats(); buttons();
+  if (!silent) { logEl.innerHTML = ''; log('SYS', 'session reset · identity = nostr keypair, no account, no password'); }
+}
+
+/* ---------- demo flows ---------- */
+async function uploadA() {
+  if (S.busy || S.stored) return;
+  busy(true, '#btnA'); hideBanner();
+  const ext = extOf(OBJ.type);
+  phase('01 · USER DEVICE'); setSub('device', 'device A · client');
+  setNode('device', 'active', 'file selected'); setStatus('UPLOADING', 'busy'); pvTag('DEVICE A · SENDING');
+  log('DEVICE', `device A · ${OBJ.name} selected (${OBJ.sizeLabel})`);
+  await wait(350);
+  log('NOSTR', 'keypair loaded locally · private key never leaves device', true);
+  setEdge('e1', true); pkt.setAttribute('transform', 'translate(151 218)');
+  await travel(pkt, 'e1', 650); setEdge('e1', false);
+
+  phase('02 · NOSTR SIGNATURE');
+  setNode('device', 'done', 'device A'); setNode('identity', 'active', 'signing…');
+  await wait(550);
+  const auth = authEvent(); showAuth(auth);
+  setNode('identity', 'done', 'sig ' + short(auth.sig, 4));
+  log('NOSTR', 'upload event signed · kind 24242 · t=upload', true);
+
+  phase('03 · BLOSSOM · SIGNED PUT /upload');
+  setEdge('e2', true); await travel(pkt, 'e2', 900); setEdge('e2', false);
+  setNode('blossom', 'active', 'verifying sig…');
+  await wait(500);
+  log('BLOSSOM', 'Blossom signature verified · pubkey authorised', true);
+
+  phase('04 · SHA-256 CONTENT ID');
+  setNode('blossom', 'active', 'hashing bytes…');
+  const h = await sha256(OBJ.bytes);
+  S.hash = h;
+  await revealHash(h, 1500);
+  log('SHA256', `SHA-256 content ID generated · ${short(h, 6)}`, true);
+  showAuth(auth, 'ok');
+  log('BLOSSOM', 'hash equals x tag in signed auth event ✓');
+  pkt.style.opacity = 0;
+  S.objects = 1; S.uploads = 1; S.blobBytes = OBJ.sizeBytes; S.stored = true;
+  $('#f-addr').textContent = `/${short(h, 4)}.${ext}`;
+  setNode('blossom', 'done', 'stored /' + short(h, 3));
+  log('BLOSSOM', `object stored → /${h.slice(0, 12)}….${ext}`, true);
+  setStatus('VERIFIED', 'ok'); pvTag('STORED ON YOUR BLOSSOM SERVER', true);
+  banner('OBJECT STORED', [[`/${short(h, 4)}.${ext}`, true], ['1 copy · ' + OBJ.sizeLabel + ' · addressed by content']]);
+  stats();
+  await wait(700);
+
+  phase('05 · PUBLISH METADATA TO RELAY');
+  const ev = metaEvent(h); S.event = ev;
+  S.relayBytes = new TextEncoder().encode(JSON.stringify(ev)).length;
+  setNode('relay', 'active', 'receiving event…');
+  $('#meta-t').textContent = 'kind 1063';
+  setEdge('e3', true); meta.setAttribute('transform', 'translate(556 204)');
+  await travel(meta, 'e3', 900); setEdge('e3', false);
+  setNode('relay', 'done', '1 event · ' + fmtBytes(S.relayBytes));
+  log('RELAY', `metadata published to relay · kind 1063 · ${fmtBytes(S.relayBytes)} · no media bytes`, true);
+  stats();
+  setEdge('e4', true); await travel(meta, 'e4', 700); setEdge('e4', false);
+  meta.style.opacity = 0;
+  setNode('gallery', 'done', '1 item indexed');
+  gallery('indexed'); $('#g-empty').innerHTML = `1 object indexed · ${short(h, 4)}<br>press OPEN GALLERY`;
+  $('#g-count').textContent = '1 item';
+  log('GALLERY', 'gallery updated · 1 object indexed');
+  phase('COMPLETE · STORED BY CONTENT, INDEXED BY METADATA');
+  busy(false);
+}
+
+async function uploadB() {
+  if (S.busy || !S.stored) return;
+  busy(true, '#btnB'); hideBanner();
+  ['device', 'identity', 'blossom', 'relay', 'gallery'].forEach(id => setNode(id, '', null));
+  $('#cmp').className = 'cmp';
+  phase('01 · USER DEVICE · DEVICE B');
+  setSub('device', 'device B · same npub');
+  setNode('device', 'active', 'same file selected'); setStatus('UPLOADING', 'busy'); pvTag('DEVICE B · SENDING');
+  log('DEVICE', `device B · same ${OBJ.name} selected (${OBJ.sizeLabel})`);
+  await wait(300);
+  log('NOSTR', 'keypair loaded locally (device B, same identity)');
+  setEdge('e1', true); pkt.setAttribute('transform', 'translate(151 218)');
+  await travel(pkt, 'e1', 600); setEdge('e1', false);
+
+  phase('02 · NOSTR SIGNATURE');
+  setNode('device', 'done', 'device B'); setNode('identity', 'active', 'signing…');
+  await wait(450);
+  const auth = authEvent(); showAuth(auth);
+  setNode('identity', 'done', 'sig ' + short(auth.sig, 4));
+  log('NOSTR', 'upload event signed · kind 24242 · t=upload');
+
+  phase('03 · BLOSSOM · SIGNED PUT /upload');
+  setEdge('e2', true); await travel(pkt, 'e2', 850); setEdge('e2', false);
+  setNode('blossom', 'active', 'verifying sig…');
+  await wait(400);
+  log('BLOSSOM', 'Blossom signature verified');
+
+  phase('04 · SHA-256 · LOOKUP BY CONTENT ID');
+  setNode('blossom', 'active', 'hashing bytes…');
+  const h = await sha256(OBJ.bytes);
+  await revealHash(h, 1200);
+  pkt.style.opacity = 0;
+  $('#cmp-a').textContent = short(S.hash, 8); $('#cmp-b').textContent = short(h, 8);
+  $('#cmp').className = 'cmp show';
+  await scanMatch();
+  showAuth(auth, 'ok');
+  log('SHA256', `content ID ${short(h, 6)} · identical to stored object`, true);
+  S.uploads += 1;
+  setNode('blossom', 'dup', 'exists · reused');
+  setStatus('VERIFIED · DEDUPLICATED', 'dup'); pvTag('SAME OBJECT · DEVICE B', true);
+  banner('DUPLICATE DETECTED', [['EXISTING OBJECT REUSED', true], ['0 BYTES DUPLICATED', true], [`${S.uploads} uploads → ${S.objects} stored object`]], 'dup');
+  log('BLOSSOM', 'DUPLICATE DETECTED · existing object reused', true);
+  log('BLOSSOM', `0 bytes duplicated · server still holds 1 object (${OBJ.sizeLabel})`, true);
+  stats();
+  setNode('relay', 'done', 'index unchanged');
+  setNode('gallery', 'done', '1 item');
+  log('RELAY', 'index already points to this hash · nothing new to store');
+  phase('COMPLETE · SAME BYTES → SAME ID → ONE COPY');
+  busy(false);
+}
+
+async function openGallery() {
+  if (S.busy || !S.stored) return;
+  busy(true, '#btnG'); hideBanner();
+  ['device', 'identity', 'blossom', 'relay', 'gallery'].forEach(id => setNode(id, '', null));
+  gallery(''); galleryMeta(null); $('#g-empty').innerHTML = 'querying relay…';
+  $('#gt-meta').classList.remove('on'); $('#gt-media').classList.remove('on');
+  $('#prog').classList.remove('on'); $('#prog-i').style.cssText = 'width:0';
+
+  phase('GALLERY · 1/3 · QUERY RELAY');
+  setNode('gallery', 'active', 'REQ → relay');
+  log('GALLERY', `REQ {kinds:[1063], authors:[${NPUB.slice(0, 10)}…]} → relay`);
+  $('#meta-t').textContent = 'REQ';
+  setEdge('e4', true); await travel(meta, 'e4', 650, true);
+  setNode('relay', 'active', 'serving 1 event');
+  await wait(250);
+  $('#meta-t').textContent = 'EVENT';
+  await travel(meta, 'e4', 650); setEdge('e4', false);
+  meta.style.opacity = 0;
+  setNode('relay', 'done', fmtBytes(S.relayBytes) + ' served');
+  log('RELAY', `1 event returned · ${fmtBytes(S.relayBytes)} · metadata only`, true);
+
+  phase('GALLERY · 2/3 · PLACEHOLDER FROM METADATA');
+  gallery('ph'); galleryMeta(S.event); $('#gt-meta').classList.add('on');
+  setNode('gallery', 'active', 'placeholder shown');
+  log('GALLERY', 'placeholder rendered from metadata (blurhash, dim)');
+  await wait(1100);
+
+  phase('GALLERY · 3/3 · FULL MEDIA FROM YOUR BLOSSOM SERVER');
+  const ext = extOf(OBJ.type);
+  setNode('blossom', 'active', `GET /${short(S.hash, 3)}`);
+  log('GALLERY', `GET https://${HOST}/${short(S.hash, 4)}.${ext} → user server`);
+  const pi = $('#prog-i'); $('#prog').classList.add('on');
+  pi.style.transition = 'none'; pi.style.width = '0';
+  void pi.offsetWidth;
+  pi.style.transition = `width ${1500 * SPEED}ms cubic-bezier(.65,0,.35,1)`; pi.style.width = '100%';
+  setEdge('e5', true); pkt.setAttribute('transform', 'translate(556 234)');
+  await travel(pkt, 'e5', 1500); setEdge('e5', false);
+  pkt.style.opacity = 0;
+  gallery('ph full'); $('#gt-media').classList.add('on');
+  $('#prog').classList.remove('on');
+  setNode('blossom', 'done', 'served ' + OBJ.sizeLabel);
+  log('BLOSSOM', `200 OK · ${OBJ.sizeLabel} served from user server`, true);
+  const check = await sha256(OBJ.bytes);
+  const ok = check === S.hash;
+  log('SHA256', ok ? 'client integrity check · sha256(bytes) == x ✓' : 'integrity check FAILED', true);
+  setNode('gallery', 'done', ok ? 'rendered · hash ✓' : 'hash mismatch');
+  phase('COMPLETE · METADATA FROM RELAY, MEDIA FROM YOUR SERVER');
+  busy(false);
+}
+
+/* ---------- wiring ---------- */
+$('#btnA').onclick = uploadA;
+$('#btnB').onclick = uploadB;
+$('#btnG').onclick = openGallery;
+$('#btnR').onclick = () => { if (!S.busy) reset(); };
+const netBox = $('#net');
+netBox.onchange = () => {
+  document.body.classList.toggle('net', netBox.checked);
+  log('VIEW', netBox.checked ? 'network view ON · relay = public & lightweight · Blossom = private & user-owned' : 'network view OFF');
+};
+$('#file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f || S.busy) return;
+  try {
+    OBJ = await fileObject(f);
+    loadObjectIntoUI(); reset(true);
+    log('DEVICE', `loaded your file · ${OBJ.name} · ${OBJ.sizeLabel} · real bytes will be hashed`, true);
+  } catch (err) { log('SYS', 'could not read that image: ' + err.message); }
+};
+addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input,textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === '1') uploadA();
+  else if (k === '2') uploadB();
+  else if (k === '3') openGallery();
+  else if (k === 'n') { netBox.checked = !netBox.checked; netBox.onchange(); }
+  else if (k === 'r' && !S.busy) reset();
+});
+
+/* ---------- boot ---------- */
+(async () => {
+  reset(true);
+  S.busy = true; buttons();
+  log('SYS', 'client ready · identity = nostr keypair, no account, no password');
+  OBJ = await demoObject();
+  loadObjectIntoUI();
+  const test = await sha256(new TextEncoder().encode('abc'));
+  const pass = test === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
+  log('SHA256', `engine: ${ENGINE} · self-test ${pass ? 'passed' : 'FAILED'}`);
+  log('DEVICE', `${OBJ.name} ready on device A · ${OBJ.sizeLabel}`);
+  S.busy = false; buttons(); stats();
+})();
+})();
+</script>
+</body>
+</html>
